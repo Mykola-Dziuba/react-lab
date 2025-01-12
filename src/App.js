@@ -3,9 +3,17 @@ import { useState } from "react";
 function App() {
     const [title, setTitle] = useState("");
 
-    function handleChange(event) {
+    const handleChange = (event) => {
         setTitle(event.target.value);
-    }
+    };
+
+    const handleClick = () => {
+        if (title.trim() !== "") {
+            alert(`Wpisany tytuł to: ${title}`);
+        } else {
+            alert("Proszę wpisać tytuł filmu.");
+        }
+    };
 
     let message;
     if (title.length > 0) {
@@ -29,6 +37,7 @@ function App() {
                 placeholder="Wpisz tytuł filmu"
             />
             {message && <p>{message}</p>}
+            <button onClick={handleClick}>Pokaż tytuł</button>
         </div>
     );
 }
