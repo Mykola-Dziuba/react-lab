@@ -1,7 +1,14 @@
 import { useState } from "react";
+import "milligram";
 
 function App() {
     const [title, setTitle] = useState("");
+    const [movies, setMovies] = useState([
+        { title: "Wall-E" },
+        { title: "Pulp Fiction" },
+        { title: "Matrix" },
+        { title: "1670" },
+    ]);
 
     const handleChange = (event) => {
         setTitle(event.target.value);
@@ -17,7 +24,7 @@ function App() {
 
     let message;
     if (title.length > 0) {
-        if (title.length < 10) {
+        if (title.length < 5) {
             message = "Tytuł jest dość krótki.";
         } else if (title.length > 50) {
             message = "To bardzo długi tytuł!";
@@ -38,8 +45,15 @@ function App() {
             />
             {message && <p>{message}</p>}
             <button onClick={handleClick}>Pokaż tytuł</button>
+            <h3>Lista filmów:</h3>
+            <ul>
+                {movies.map((movie) => (
+                    <li key={movie.title}>{movie.title}</li>
+                ))}
+            </ul>
         </div>
     );
 }
 
 export default App;
+
