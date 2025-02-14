@@ -9,12 +9,11 @@ export default function MoviesList({ movies, onDelete, onEdit }) {
                     <Movie
                         key={movie.id}
                         movie={movie}
-                        onDelete={() => onDelete(movie.id)} // Используем id вместо index
-                        onEdit={() => onEdit(movie)} // Добавляем обработчик редактирования
+                        onDelete={() => onDelete(movie.id)} // Use movie ID for deletion
+                        onEdit={() => onEdit(movie)} // Send full movie data for editing
                     />
                 ))}
             </ul>
         </div>
     );
 }
-

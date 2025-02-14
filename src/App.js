@@ -7,41 +7,38 @@ import ActorForm from "./ActorForm";
 function App() {
     const [movies, setMovies] = useState([]);
     const [showMovieForm, setShowMovieForm] = useState(false);
-    const [showActorForm, setShowActorForm] = useState(false); // Manage the actor form visibility
-    const [editingMovie, setEditingMovie] = useState(null); // Manage the movie being edited
+    const [showActorForm, setShowActorForm] = useState(false);
+    const [editingMovie, setEditingMovie] = useState(null);
 
-    // Fetch movies from the backend when the component is mounted
     useEffect(() => {
-        const fetchMovies = async () => {
-            try {
-                const response = await fetch("http://127.0.0.1:8000/movies/");
-                if (!response.ok) {
-                    throw new Error("Failed to fetch movies");
-                }
-                const data = await response.json();
-                setMovies(data);
-            } catch (error) {
-                console.error("Error fetching movies:", error);
-            }
-        };
-
         fetchMovies();
     }, []);
+
+    const fetchMovies = async () => {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/movies/");
+            if (!response.ok) {
+                throw new Error("Failed to fetch movies");
+            }
+            const data = await response.json();
+            setMovies(data);
+        } catch (error) {
+            console.error("Error fetching movies:", error);
+        }
+    };
 
     const addMovie = async (movie) => {
         try {
             const response = await fetch("http://127.0.0.1:8000/movies/", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(movie),
             });
             if (!response.ok) {
                 throw new Error("Failed to add movie");
             }
-            const newMovie = await response.json();
-            setMovies([...movies, newMovie]);
+            await fetchMovies();
+            setShowMovieForm(false);
             alert("Movie added successfully!");
         } catch (error) {
             console.error("Error adding movie:", error);
@@ -52,17 +49,14 @@ function App() {
         try {
             const response = await fetch("http://127.0.0.1:8000/actors/", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(actor),
             });
             if (!response.ok) {
                 throw new Error("Failed to add actor");
             }
-            const newActor = await response.json();
-            alert(`Actor added: ${newActor.name} ${newActor.surname}`);
-            setShowActorForm(false); // Close the actor form
+            alert("Actor added successfully!");
+            setShowActorForm(false);
         } catch (error) {
             console.error("Error adding actor:", error);
         }
@@ -70,34 +64,43 @@ function App() {
 
     const updateMovie = async (movie) => {
         try {
+            const movieData = {
+                ...movie,
+                actors: movie.actors.map(actor => actor.id), // Отправляем только ID актеров
+            };
+
+            console.log("Updating movie:", movieData); // Логируем отправляемые данные
+
             const response = await fetch(`http://127.0.0.1:8000/movies/${movie.id}`, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(movie),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(movieData),
             });
+
             if (!response.ok) {
                 throw new Error("Failed to update movie");
             }
-            const updatedMovie = await response.json();
-            setMovies(movies.map((m) => (m.id === updatedMovie.id ? updatedMovie : m)));
+
+            await fetchMovies();
+            setEditingMovie(null);
+            setShowMovieForm(false);
             alert("Movie updated successfully!");
         } catch (error) {
             console.error("Error updating movie:", error);
         }
     };
 
+
     const deleteMovie = async (movieId) => {
         if (!window.confirm("Are you sure you want to delete this movie?")) return;
         try {
-            const response = await fetch(`http://127.0.0.1:8000/movies/${movieId}`, {
+            const response = await fetch(`http://127.0.0.1:8000/movies/${movieId}/`, {
                 method: "DELETE",
             });
             if (!response.ok) {
                 throw new Error("Failed to delete movie");
             }
-            setMovies(movies.filter((movie) => movie.id !== movieId));
+            await fetchMovies();
             alert("Movie deleted successfully!");
         } catch (error) {
             console.error("Error deleting movie:", error);
@@ -106,7 +109,7 @@ function App() {
 
     return (
         <div className="container">
-            <h1>My favourite movies to watch</h1>
+            <h1>My Favourite Movies</h1>
             {movies.length === 0 ? (
                 <p>No movies yet. Maybe add something?</p>
             ) : (
@@ -120,15 +123,13 @@ function App() {
                     }}
                 />
             )}
-
-            {/* Form visibility management */}
             <div style={{ marginTop: "10px" }}>
                 <button
                     className="button"
                     onClick={() => {
                         setShowMovieForm(!showMovieForm);
-                        setShowActorForm(false); // Hide actor form
-                        setEditingMovie(null); // Clear editing state
+                        setShowActorForm(false);
+                        setEditingMovie(null);
                     }}
                 >
                     {showMovieForm ? "Hide Movie Form" : "Add a Movie"}
@@ -137,15 +138,13 @@ function App() {
                     className="button"
                     onClick={() => {
                         setShowActorForm(!showActorForm);
-                        setShowMovieForm(false); // Hide movie form
+                        setShowMovieForm(false);
                     }}
                     style={{ marginLeft: "10px" }}
                 >
                     {showActorForm ? "Hide Actor Form" : "Add an Actor"}
                 </button>
             </div>
-
-            {/* Movie form */}
             {showMovieForm && (
                 <MovieForm
                     onMovieSubmit={(movie) => {
@@ -154,19 +153,13 @@ function App() {
                         } else {
                             addMovie(movie);
                         }
-                        setShowMovieForm(false);
                     }}
                     buttonLabel={editingMovie ? "Edit Movie" : "Add a Movie"}
                     initialData={editingMovie || null}
                 />
             )}
-
-            {/* Actor form */}
             {showActorForm && (
-                <ActorForm
-                    onActorSubmit={addActor}
-                    buttonLabel="Add Actor"
-                />
+                <ActorForm onActorSubmit={addActor} buttonLabel="Add Actor" />
             )}
         </div>
     );
